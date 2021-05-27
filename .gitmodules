@@ -1,0 +1,3 @@
+[submodule "EditableCMDLibrary"]
+	path = EditableCMDLibrary
+	url = ../EditableCMDLibrary/

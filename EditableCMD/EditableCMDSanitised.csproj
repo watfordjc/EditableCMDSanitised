@@ -1,0 +1,76 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Description>Wrapper for Windows Command Processor</Description>
+    <Product>EditableCMDSanitised</Product>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <PackageId>uk.JohnCook.dotnet.EditableCMDSanitised</PackageId>
+    <AssemblyName>ecmds</AssemblyName>
+    <Company></Company>
+    <Authors>John Cook</Authors>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <Copyright>© John Cook 2021.</Copyright>
+    <Version>0.1.0.0</Version>
+    <SignAssembly>false</SignAssembly>
+    <DebugType>embedded</DebugType>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <Win32Resource>res\ecmds.res</Win32Resource>
+    <!-- SignAfterPublish - Set to "true" to sign the executable after Publish -->
+    <SignAfterPublish>false</SignAfterPublish>
+    <!-- SignCertificateCN - The Common Name of the code-signing certificate to use -->
+    <SignCertificateCN>Your Name</SignCertificateCN>
+    <!-- SignTimeStampServer - The (optional) timestamping service to use when signing -->
+    <SignTimeStampServer>http://timestamp.comodoca.com/rfc3161</SignTimeStampServer>
+    <RootNamespace>uk.JohnCook.dotnet.EditableCMD</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ApplicationIcon />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="System.Windows.Extensions" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="res\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EditableCMDLibrary\EditableCMDLibrary\EditableCMDLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <!-- For Release builds, recompile the .res file -->
+    <Exec Condition="'$(Configuration)' == 'Release'" Command="call &quot;$(DevEnvDir)..\..\vc\Auxiliary\build\vcvars64.bat&quot;&#xD;&#xA;&quot;%25WindowsSdkVerBinPath%25\x64\rc.exe&quot; /r &quot;$(ProjectDir)res\ecmds.rc&quot;" />
+  </Target>
+
+  <!-- This target will run after Publishing if SignAfterPublish=true and SignCertificateCN is set -->
+  <Target Name="Aftercc" AfterTargets="Publish" Condition="exists('$(PublishDir)') AND '$(SignAfterPublish)' == 'true' AND '$(SignCertificateCN)' != ''">
+    <Message Importance="high" Text="Starting executable signing" />
+    <!-- Command to execute if SignTimeStampServer is not set -->
+    <Exec Condition="'$(SignTimeStampServer)' == ''" Command="ECHO.&#xD;&#xA;ECHO Timestamping service that will be used: none&#xD;&#xA;ECHO.&#xD;&#xA;CALL &quot;$(DevEnvDir)..\..\vc\Auxiliary\build\vcvars64.bat&quot;&#xD;&#xA;ECHO.&#xD;&#xA;ECHO.&#xD;&#xA;ECHO Waiting 10 seconds for $(TargetName).exe to stop being accessed...&#xD;&#xA;PING -n 11 127.0.0.1 &gt;NUL&#xD;&#xA;ECHO.&#xD;&#xA;ECHO Running signtool to sign $(TargetName).exe using a certificate with Common Name of $(SignCertificateCN)...&#xD;&#xA;ECHO.&#xD;&#xA;signtool sign /v /n &quot;$(SignCertificateCN)&quot; /fd sha256 &quot;$(ProjectDir)$(PublishDir)ecmds.exe&quot;" />
+    <!-- Command to execute if SignTimeStampServer is set -->
+    <Exec Condition="'$(SignTimeStampServer)' != ''" Command="ECHO.&#xD;&#xA;ECHO Timestamping service that will be used: $(SignTimeStampServer)&#xD;&#xA;ECHO.&#xD;&#xA;CALL &quot;$(DevEnvDir)..\..\vc\Auxiliary\build\vcvars64.bat&quot;&#xD;&#xA;ECHO.&#xD;&#xA;ECHO.&#xD;&#xA;ECHO Waiting 10 seconds for $(TargetName).exe to stop being accessed...&#xD;&#xA;PING -n 11 127.0.0.1 &gt;NUL&#xD;&#xA;ECHO.&#xD;&#xA;ECHO Running signtool to sign $(TargetName).exe using a certificate with Common Name of $(SignCertificateCN)...&#xD;&#xA;ECHO.&#xD;&#xA;signtool sign /v /n &quot;$(SignCertificateCN)&quot; /tr &quot;$(SignTimeStampServer)&quot; /td sha256 /fd sha256 &quot;$(ProjectDir)$(PublishDir)ecmds.exe&quot;" />
+    <!-- Command to create draft cmd AutoRun registry script (early test - currently breaks Visual Studio building among other things) -->
+    <Exec Command="ECHO.&#xD;&#xA;ECHO Creating batch files for AutoRun...&#xD;&#xA;ECHO @echo off &gt; &quot;$(ProjectDir)$(PublishDir)AutoRun2.cmd&quot;&#xD;&#xA;ECHO &quot;$(ProjectDir)$(PublishDir)ecmds.exe&quot; /D /QQ &quot;cd %25CD%25&quot; &gt;&gt; &quot;$(ProjectDir)$(PublishDir)AutoRun2.cmd&quot;&#xD;&#xA;ECHO exit &gt;&gt; &quot;$(ProjectDir)$(PublishDir)AutoRun2.cmd&quot;" />
+  </Target>
+
+</Project>
