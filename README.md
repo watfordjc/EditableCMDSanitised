@@ -2,6 +2,8 @@
 
 **EditableCMDSanitised** (**ECMDS**) is a wrapper program for ```cmd.exe``` that has an edit mode and plugin support. It is a *sanitised* fork of **EditableCMD**.
 
+EditableCMDSanitised is part of the [**EditableCMD GitHub Project**](https://github.com/users/watfordjc/projects/3).
+
 There is an **About** section in this README, but it has been moved near the bottom due to its length.
 
 ## Unimplemented, Untested, and Broken Features
@@ -70,6 +72,16 @@ Edit mode can be exited in 4 ways:
 <img src="images/editable-cmd-2.PNG" alt="Two command prompt windows that have both run tree and been cancelled with Ctrl+C. The bottom window has been edited with the text hunter added vertically (one character per line)." width="75%"></a>
 <figcaption>A cmd.exe window and an EditableCMD window.</figcaption>
 </figure>
+
+## Issue Reporting
+
+Issues for EditableCMDSanitised that are **grey** (see about section for definition) will be labelled ![grey/gray](https://img.shields.io/static/v1?label=&message=grey%2Fgray&color=%23666666) and ![wontfix](https://img.shields.io/static/v1?label=&message=wontfix&color=%23ffffff) and closed.
+
+Pull requests that are **grey** will be labelled ![grey/gray](https://img.shields.io/static/v1?label=&message=grey%2Fgray&color=%23666666) and ![invalid](https://img.shields.io/static/v1?label=&message=invalid&color=%23e4e669) and closed.
+
+**Grey** issues will only be accepted for the **EditableCMD** repository. Non-grey issues should be filed in the relevant repository, with non-grey issues affecting both EditableCMD and EditableCMDSanitised being reported in the EditableCMDSanitised repository.
+
+Pull requests not labelled ![grey/gray](https://img.shields.io/static/v1?label=&message=grey%2Fgray&color=%23666666) for EditableCMDSanitised will be labelled ![EditableCMD: to-patch](https://img.shields.io/static/v1?label=&message=EditableCMD%3A%20to-patch&color=%23ffccbb) before a patch is created, ![EditableCMD: branched](https://img.shields.io/static/v1?label=&message=EditableCMD%3A%20branched&color=%23ffffcc) when a branch has been created to test the patch, and ![EditableCMD: main](https://img.shields.io/static/v1?label=&message=EditableCMD%3A%20main&color=%23bbffbb) when the branch has been merged into EditableCMD's ```main``` branch.
 
 ---
 
