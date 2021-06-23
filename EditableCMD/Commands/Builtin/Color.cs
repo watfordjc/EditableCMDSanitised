@@ -64,7 +64,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
             // Add all commands listed in CommandsHandled to the regex string for matching if this plugin handles the command.
             if (KeysHandled.Contains(ConsoleKey.Enter) && CommandsHandled.Length > 0)
             {
-                regexCommandString = string.Concat("^(", string.Join('|', CommandsHandled), ")( .*)?$");
+                regexCommandString = string.Concat("^(", string.Join('|', CommandsHandled), ")?$");
             }
         }
 
