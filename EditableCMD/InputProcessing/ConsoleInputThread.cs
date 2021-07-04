@@ -17,15 +17,15 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing
         /// <summary>
         /// Event fired when there is a new console mouse input event.
         /// </summary>
-        public event EventHandler<NativeMethods.ConsoleMouseEventArgs> MouseInput;
+        public event EventHandler<NativeMethods.ConsoleMouseEventArgs>? MouseInput;
         /// <summary>
         /// Event fired when there is a new console keyboard input event.
         /// </summary>
-        public event EventHandler<NativeMethods.ConsoleKeyEventArgs> KeyboardInput;
+        public event EventHandler<NativeMethods.ConsoleKeyEventArgs>? KeyboardInput;
         /// <summary>
         /// Event fired when there is a new console window buffer size changed event.
         /// </summary>
-        public event EventHandler<NativeMethods.ConsoleWindowBufferSizeEventArgs> WindowBufferSizeChanged;
+        public event EventHandler<NativeMethods.ConsoleWindowBufferSizeEventArgs>? WindowBufferSizeChanged;
 
         private readonly ConsoleState state;
 

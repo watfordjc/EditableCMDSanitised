@@ -25,7 +25,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.ConsoleSessions
             // If called via AutoRun script and there were command line parameters
             if (!state.StartupParams.Help && state.StartupParams.RunExecutable.Length > 0)
             {
-                string runCommand = state.StartupParams.RunCommandCliParams.RunCommand ?? state.StartupParams.RunCommand;
+                string runCommand = state.StartupParams.RunCommandCliParams?.RunCommand ?? state.StartupParams.RunCommand;
 
                 if (runCommand.Length > 0)
                 {
@@ -41,7 +41,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.ConsoleSessions
                         state.CmdProcessStartInfo.Arguments = runCommand;
                     }
                     state.CmdProcess = Process.Start(state.CmdProcessStartInfo);
-                    state.CmdProcess.WaitForExit();
+                    state.CmdProcess?.WaitForExit();
                 }
                 state.CmdProcessStartInfo.FileName = StringUtils.GetComSpec();
             }
@@ -62,7 +62,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.ConsoleSessions
                     state.CmdProcessStartInfo.Arguments = "/?";
                 }
                 state.CmdProcess = Process.Start(state.CmdProcessStartInfo);
-                state.CmdProcess.WaitForExit();
+                state.CmdProcess?.WaitForExit();
                 // The command string has finished executing.
             }
 
@@ -87,7 +87,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.ConsoleSessions
                     if (envFileAccessible)
                     {
                         using StreamReader envFile = new(state.EnvLogger.LogFile);
-                        string lineContent;
+                        string? lineContent;
                         while ((lineContent = envFile.ReadLine()) != null)
                         {
                             string[] variable = lineContent.Split('=', 2);

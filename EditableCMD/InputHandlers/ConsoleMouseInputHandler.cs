@@ -17,7 +17,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputHandlers
         /// <summary>
         /// Event for when this class wants to change the edit mode state.
         /// </summary>
-        public static event EventHandler<EditModeChangeEventArgs> EditModeChanged;
+        public static event EventHandler<EditModeChangeEventArgs>? EditModeChanged;
 
         /// <summary>
         /// Handler for mouse events
@@ -25,7 +25,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputHandlers
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The record to parse.</param>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public static void OnMouseInput(object sender, NativeMethods.ConsoleMouseEventArgs e)
+        public static void OnMouseInput(object? sender, NativeMethods.ConsoleMouseEventArgs e)
         {
             ConsoleState state = Program.GetConsoleState();
             NativeMethods.MOUSE_EVENT_RECORD record = e.MouseEventRecord;

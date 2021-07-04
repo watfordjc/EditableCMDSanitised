@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,9 +23,9 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputHandlers
         /// <summary>
         /// Event where (bKeyDown == true) OR ((bKeyDown == false) AND the KeyUp event is being treated as a KeyDown event)
         /// </summary>
-        public event EventHandler<NativeMethods.ConsoleKeyEventArgs> KeyPressed;
+        public event EventHandler<NativeMethods.ConsoleKeyEventArgs>? KeyPressed;
 
-        private readonly InputProcessing.NormalModeKeys.Enter enterCommand = null;
+        private readonly InputProcessing.NormalModeKeys.Enter enterCommand;
 
         private void AddInputEventHandler(ConsoleState state, ICommandInput handler)
         {
@@ -177,7 +178,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputHandlers
                     command.Description
                 };
                 Debug.WriteLine(pluginLoadStringFormat, pluginLoadStringArgs);
-                state.InputLogger?.FormattedLog(pluginLoadStringFormat, pluginLoadStringArgs);
+                state.InputLogger.FormattedLog(pluginLoadStringFormat, pluginLoadStringArgs);
             };
         }
 
@@ -187,7 +188,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputHandlers
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The ConsoleKeyEventArgs to parse.</param>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void OnKeyboardInput(object sender, NativeMethods.ConsoleKeyEventArgs e)
+        public void OnKeyboardInput(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
             if (e.Key.KeyDown)
             {
