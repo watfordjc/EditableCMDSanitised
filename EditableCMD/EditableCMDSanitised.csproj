@@ -27,6 +27,7 @@
     <RootNamespace>uk.JohnCook.dotnet.EditableCMD</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ApplicationIcon />
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

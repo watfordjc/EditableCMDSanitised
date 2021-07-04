@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Versioning;
 using uk.JohnCook.dotnet.EditableCMDLibrary.Commands;
 using uk.JohnCook.dotnet.EditableCMDLibrary.ConsoleSessions;
+using uk.JohnCook.dotnet.EditableCMDLibrary.Utils;
 
 namespace uk.JohnCook.dotnet.EditableCMD.Commands.Plugins
 {
@@ -16,6 +18,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands.Plugins
         /// </summary>
         /// <param name="state">The <see cref="ConsoleState"/> for the current console session.</param>
         /// <param name="pluginPaths">The paths for plugins.</param>
+        [SupportedOSPlatform("windows")]
         internal static IEnumerable<ICommandInput> LoadPlugins(ConsoleState state, string[] pluginPaths)
         {
             // Store the paths as a list of absolute path strings.
@@ -29,7 +32,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands.Plugins
                 // Remove directories from the file list.
                 pluginFiles.RemoveAll(path => pluginDirectories.Contains(path));
                 // Recursively search directories for files matching *.dll (case-insensitive) and add those found to the files list.
-                DirectoryInfo directoryInfo = null;
+                DirectoryInfo directoryInfo;
                 pluginFiles.AddRange(
                     pluginDirectories.SelectMany(directoryPath =>
                     {
@@ -38,7 +41,6 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands.Plugins
                     }).ToList()
                 );
                 // Clear directory variables
-                directoryInfo = null;
                 pluginDirectories.Clear();
             }
             // Remove any duplicates from the list - Distinct() uses default comparer for the Type, so string.Equals()
@@ -72,9 +74,15 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands.Plugins
         /// </summary>
         /// <param name="path">A relative or absolute path.</param>
         /// <returns>An absolute path.</returns>
+        [SupportedOSPlatform("windows")]
         private static string GetAbsolutePath(string path)
         {
-            return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(AppContext.BaseDirectory), path.Replace('\\', Path.DirectorySeparatorChar)));
+            string? basePath = Path.GetDirectoryName(AppContext.BaseDirectory);
+            if (basePath == null && StringUtils.TryGetPathRoot(AppContext.BaseDirectory, out string? pathRoot))
+            {
+                basePath = pathRoot;
+            }
+            return Path.GetFullPath(Path.Combine(basePath ?? string.Empty, path.Replace('\\', Path.DirectorySeparatorChar)));
         }
 
         /// <summary>

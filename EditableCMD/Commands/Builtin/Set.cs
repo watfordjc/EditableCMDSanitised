@@ -17,54 +17,33 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
     public class Set : ICommandInput
     {
         #region Plugin Implementation Details
-        /// <summary>
-        /// Name of the plugin.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.Name"/>
         public string Name => "Set";
-        /// <summary>
-        /// Summary of the plugin's functionality.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.Description"/>
         public string Description => "Handles SET command.";
-        /// <summary>
-        /// Author's name (can be <see cref="string.Empty"/>)
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.AuthorName"/>
         public string AuthorName => "John Cook";
-        /// <summary>
-        /// Author's Twitch username (can be <see cref="string.Empty"/>)
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.AuthorTwitchUsername"/>
         public string AuthorTwitchUsername => "WatfordJC";
-        /// <summary>
-        /// An array of the keys handled by the plugin. For commands, this should be <see cref="ConsoleKey.Enter"/>.
-        /// </summary>
-        public ConsoleKey[] KeysHandled => new ConsoleKey[] { ConsoleKey.Enter };
-        /// <summary>
-        /// Whether the plugin handles keys/commands input in normal mode (such as a command entered at the prompt).
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.KeysHandled"/>
+        public ConsoleKey[]? KeysHandled => new ConsoleKey[] { ConsoleKey.Enter };
+        /// <inheritdoc cref="ICommandInput.NormalModeHandled"/>
         public bool NormalModeHandled => true;
-        /// <summary>
-        /// Whether the plugin handles keys input in edit mode.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.EditModeHandled"/>
         public bool EditModeHandled => false;
-        /// <summary>
-        /// Whether the plugin handles keys input in mark mode.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.MarkModeHandled"/>
         public bool MarkModeHandled => false;
-        /// <summary>
-        /// An array of commands handled by the plugin, in lowercase.
-        /// </summary>
-        public string[] CommandsHandled => new string[] { "set" };
+        /// <inheritdoc cref="ICommandInput.CommandsHandled"/>
+        public string[]? CommandsHandled => new string[] { "set" };
         #endregion
 
         private string regexCommandString = string.Empty;
 
-        /// <summary>
-        /// Called when adding an implementation of the interface to the list of event handlers. Approximately equivalent to a constructor.
-        /// </summary>
-        /// <param name="state">The <see cref="ConsoleState"/> for the current console session.</param>
+        /// <inheritdoc cref="ICommandInput.Init(ConsoleState)"/>
         public void Init(ConsoleState state)
         {
             // Add all commands listed in CommandsHandled to the regex string for matching if this plugin handles the command.
-            if (KeysHandled.Contains(ConsoleKey.Enter) && CommandsHandled.Length > 0)
+            if (KeysHandled?.Contains(ConsoleKey.Enter) == true && CommandsHandled?.Length > 0)
             {
                 regexCommandString = string.Concat("^(", string.Join('|', CommandsHandled), ")( .*)?$");
             }
@@ -73,9 +52,8 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
         /// <summary>
         /// Event handler for the SET command
         /// </summary>
-        /// <param name="sender">Sender of the event</param>
-        /// <param name="e">The ConsoleKeyEventArgs for the event</param>
-        public void ProcessCommand(object sender, NativeMethods.ConsoleKeyEventArgs e)
+        /// <inheritdoc cref="ICommandInput.ProcessCommand(object?, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
+        public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
             // Return early if we're not interested in the event
             if (e.Handled || // Event has already been handled
@@ -105,7 +83,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
             {
                 Console.WriteLine();
                 // Initialise a SortedDictionary<string, string> with the Environment.GetEnvironmentVariables() HashTable<string, string> cast to a Dictionary<string, string>
-                SortedDictionary<string, string> sortedEnvVars = new(Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().ToDictionary(keyValuePair => (string)keyValuePair.Key, keyValuePair => (string)keyValuePair.Value));
+                SortedDictionary<string, string> sortedEnvVars = new(Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().ToDictionary(keyValuePair => (string)keyValuePair.Key, keyValuePair => (string)keyValuePair.Value ?? string.Empty));
                 foreach (KeyValuePair<string, string> envVar in sortedEnvVars)
                 {
                     Console.WriteLine(string.Concat(envVar.Key, "=", envVar.Value));
@@ -140,13 +118,13 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                         string[] setParams = e.State.Input.Text.ToString().Split(' ', variableNamePosition + 1, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[variableNamePosition].Split('=', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                         if (hasPromptedParam && setParams.Length == 2)
                         {
-                            Console.Write(setParams.Length == 2 ? setParams[1] : "");
-                            setParams[1] = Console.ReadLine();
+                            Console.Write(setParams.Length == 2 ? setParams[1] : string.Empty);
+                            setParams[1] = Console.ReadLine() ?? string.Empty;
                         }
                         else if (hasPromptedParam && setParams.Length == 1)
                         {
-                            setParams = new string[2] { setParams[0], string.Empty };
-                            setParams[1] = Console.ReadLine();
+                            setParams = new string[2] { setParams[0], string.Empty};
+                            setParams[1] = Console.ReadLine() ?? string.Empty;
                         }
                         if (setParams.Length == 2)
                         {
@@ -172,8 +150,8 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                     {
                         // Initialise a SortedDictionary<string, string> with the Environment.GetEnvironmentVariables() HashTable<string, string> cast to a Dictionary<string, string>
                         SortedDictionary<string, string> sortedEnvVars = new(Environment.GetEnvironmentVariables().Cast<DictionaryEntry>()
-                            .Where(x => (x.Key as string).ToLower().StartsWith(commandWords[1].ToLower()))
-                            .ToDictionary(keyValuePair => (string)keyValuePair.Key, keyValuePair => (string)keyValuePair.Value));
+                            .Where(x => (x.Key as string)?.ToLower().StartsWith(commandWords[1].ToLower()) == true)
+                            .ToDictionary(keyValuePair => (string)keyValuePair.Key, keyValuePair => (string)keyValuePair.Value ?? string.Empty));
                         if (sortedEnvVars.Any())
                         {
                             foreach (KeyValuePair<string, string> envVar in sortedEnvVars.Where(x => x.Key.ToLower().StartsWith(commandWords[1].ToLower())))
@@ -206,7 +184,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                     // The result of the aritmetic will be on the first line of the output - we can ignore the rest
                     bool firstLineReceived = false;
                     // Local method that will get called whenever CommandPrompt receives a line of output
-                    void onNewOutput(object sender, int newLineCount)
+                    void onNewOutput(object? sender, int newLineCount)
                     {
                         if (!firstLineReceived && newLineCount == 1)
                         {
@@ -217,7 +195,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                         }
                     }
                     // Local method that will get called when CommandPrompt's thread has finished executing
-                    void onComplete(object sender, bool completed)
+                    void onComplete(object? sender, bool completed)
                     {
                         commandPrompt.NewOutput -= onNewOutput;
                         commandPrompt.Completed -= onComplete;

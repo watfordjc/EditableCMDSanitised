@@ -15,55 +15,34 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
     public class F12 : ICommandInput, IDisposable
     {
         #region Plugin Implementation Details
-        /// <summary>
-        /// Name of the plugin.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.Name"/>
         public string Name => "F12 key";
-        /// <summary>
-        /// Summary of the plugin's functionality.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.Description"/>
         public string Description => "Handles key F12.";
-        /// <summary>
-        /// Author's name (can be <see cref="string.Empty"/>)
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.AuthorName"/>
         public string AuthorName => "John Cook";
-        /// <summary>
-        /// Author's Twitch username (can be <see cref="string.Empty"/>)
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.AuthorTwitchUsername"/>
         public string AuthorTwitchUsername => "WatfordJC";
-        /// <summary>
-        /// An array of the keys handled by the plugin. For commands, this should be <see cref="ConsoleKey.Enter"/>.
-        /// </summary>
-        public ConsoleKey[] KeysHandled => new ConsoleKey[] { ConsoleKey.F12 };
-        /// <summary>
-        /// Whether the plugin handles keys/commands input in normal mode (such as a command entered at the prompt).
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.KeysHandled"/>
+        public ConsoleKey[]? KeysHandled => new ConsoleKey[] { ConsoleKey.F12 };
+        /// <inheritdoc cref="ICommandInput.NormalModeHandled"/>
         public bool NormalModeHandled => true;
-        /// <summary>
-        /// Whether the plugin handles keys input in edit mode.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.EditModeHandled"/>
         public bool EditModeHandled => false;
-        /// <summary>
-        /// Whether the plugin handles keys input in mark mode.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.MarkModeHandled"/>
         public bool MarkModeHandled => false;
-        /// <summary>
-        /// An array of commands handled by the plugin, in lowercase.
-        /// </summary>
-        public string[] CommandsHandled => null;
+        /// <inheritdoc cref="ICommandInput.CommandsHandled"/>
+        public string[]? CommandsHandled => null;
         #endregion
 
         /// <summary>
         /// Event for when this class wants to change the edit mode state.
         /// </summary>
-        public event EventHandler<EditModeChangeEventArgs> EditModeChanged;
+        public event EventHandler<EditModeChangeEventArgs>? EditModeChanged;
 
-        private ConsoleState state = null;
+        private ConsoleState? state;
 
-        /// <summary>
-        /// Called when adding an implementation of the interface to the list of event handlers. Approximately equivalent to a constructor.
-        /// </summary>
-        /// <param name="state">The <see cref="ConsoleState"/> for the current console session.</param>
+        /// <inheritdoc cref="ICommandInput.Init(ConsoleState)"/>
         public void Init(ConsoleState state)
         {
             this.state = state;
@@ -74,9 +53,8 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
         /// <summary>
         /// Event handler for F12 key
         /// </summary>
-        /// <param name="sender">Sender of the event</param>
-        /// <param name="e">The ConsoleKeyEventArgs for the event</param>
-        public void ProcessCommand(object sender, NativeMethods.ConsoleKeyEventArgs e)
+        /// <inheritdoc cref="ICommandInput.ProcessCommand(object, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
+        public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
             // Return early if we're not interested in the event
             if (e.Handled || // Event has already been handled
@@ -87,7 +65,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
                 return;
             }
             // If current input is F12, we are handling the event
-            else if (KeysHandled.Contains(e.Key.ConsoleKey))
+            else if (KeysHandled?.Contains(e.Key.ConsoleKey) == true)
             {
                 e.Handled = true;
             }
@@ -120,11 +98,14 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
         /// </summary>
         /// <param name="sender">Sender of the event.</param>
         /// <param name="sessionClosing">True if session is closing.</param>
-        public void SessionClosing(object sender, bool sessionClosing)
+        public void SessionClosing(object? sender, bool sessionClosing)
         {
             if (sessionClosing)
             {
-                state.SessionClosing -= SessionClosing;
+                if (state != null)
+                {
+                    state.SessionClosing -= SessionClosing;
+                }
                 Dispose();
             }
         }
@@ -134,10 +115,13 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
         /// </summary>
         public void Dispose()
         {
-            Delegate[] editModeChangedDelegates = EditModeChanged.GetInvocationList();
-            foreach (Delegate delegateToDelete in editModeChangedDelegates)
+            if (EditModeChanged != null)
             {
-                EditModeChanged -= (EventHandler<EditModeChangeEventArgs>)delegateToDelete;
+                Delegate[] editModeChangedDelegates = EditModeChanged.GetInvocationList();
+                foreach (Delegate delegateToDelete in editModeChangedDelegates)
+                {
+                    EditModeChanged -= (EventHandler<EditModeChangeEventArgs>)delegateToDelete;
+                }
             }
             GC.SuppressFinalize(this);
         }

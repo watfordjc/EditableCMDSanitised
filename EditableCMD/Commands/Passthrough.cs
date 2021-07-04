@@ -15,51 +15,32 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
     public class Passthrough : ICommandInput
     {
         #region Plugin Implementation Details
-        /// <summary>
-        /// Name of the plugin.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.Name"/>
         public string Name => "Passthrough";
-        /// <summary>
-        /// Summary of the plugin's functionality.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.Description"/>
         public string Description => "Handles the passthrough of commands not handled, passing them through to a command prompt sub-process.";
-        /// <summary>
-        /// Author's name (can be <see cref="string.Empty"/>)
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.AuthorName"/>
         public string AuthorName => "John Cook";
-        /// <summary>
-        /// Author's Twitch username (can be <see cref="string.Empty"/>)
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.AuthorTwitchUsername"/>
         public string AuthorTwitchUsername => "WatfordJC";
-        /// <summary>
-        /// An array of the keys handled by the plugin. For commands, this should be <see cref="ConsoleKey.Enter"/>.
-        /// </summary>
-        public ConsoleKey[] KeysHandled => new ConsoleKey[] { ConsoleKey.Enter };
-        /// <summary>
-        /// Whether the plugin handles keys/commands input in normal mode (such as a command entered at the prompt).
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.KeysHandled"/>
+        public ConsoleKey[]? KeysHandled => new ConsoleKey[] { ConsoleKey.Enter };
+        /// <inheritdoc cref="ICommandInput.NormalModeHandled"/>
         public bool NormalModeHandled => true;
-        /// <summary>
-        /// Whether the plugin handles keys input in edit mode.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.EditModeHandled"/>
         public bool EditModeHandled => false;
-        /// <summary>
-        /// Whether the plugin handles keys input in mark mode.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.MarkModeHandled"/>
         public bool MarkModeHandled => false;
-        /// <summary>
-        /// An array of commands handled by the plugin, in lowercase.
-        /// </summary>
+        /// <inheritdoc cref="ICommandInput.CommandsHandled"/>
         /// <remarks>Matches all commands.</remarks>
-        public string[] CommandsHandled => new string[] { ".*" };
+        public string[]? CommandsHandled => new string[] { ".*" };
         #endregion
 
         /// <summary>
         /// Event handler for all unhandled commands
         /// </summary>
-        /// <param name="sender">Sender of the event</param>
-        /// <param name="e">The ConsoleKeyEventArgs for the event</param>
-        public void ProcessCommand(object sender, NativeMethods.ConsoleKeyEventArgs e)
+        /// <inheritdoc cref="ICommandInput.ProcessCommand(object, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
+        public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
             if (e.Handled || // Event has already been handled
                 !e.KeyEventRecord.bKeyDown || // A key was not pressed
@@ -94,7 +75,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                 if (envFileAccessible)
                 {
                     using StreamReader envFile = new(state.EnvLogger.LogFile);
-                    string lineContent;
+                    string? lineContent;
                     while ((lineContent = envFile.ReadLine()) != null)
                     {
                         string[] variable = lineContent.Split('=', 2);
