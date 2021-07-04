@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Versioning;
 using uk.JohnCook.dotnet.EditableCMDLibrary.Commands;
@@ -36,12 +37,27 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
         public string[]? CommandsHandled => new string[] { ".*" };
         #endregion
 
+        private ConsoleState? state;
+
+        /// <inheritdoc cref="ICommandInput.Init(ConsoleState)"/>
+        [MemberNotNull(nameof(state))]
+        public void Init(ConsoleState state)
+        {
+            this.state = state;
+        }
+
         /// <summary>
         /// Event handler for all unhandled commands
         /// </summary>
         /// <inheritdoc cref="ICommandInput.ProcessCommand(object, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
         public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
+            // Call Init() again if state isn't set
+            if (state == null)
+            {
+                Init(e.State);
+            }
+            // Return early if we're not interested in the event
             if (e.Handled || // Event has already been handled
                 !e.KeyEventRecord.bKeyDown || // A key was not pressed
                 !(e.KeyEventRecord.wVirtualKeyCode == (ushort)ConsoleKey.Enter) // The key pressed was not Enter
@@ -54,7 +70,6 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                 e.Handled = true;
             }
 
-            ConsoleState state = e.State;
             Console.WriteLine();
 
             state.CmdRunning = true;

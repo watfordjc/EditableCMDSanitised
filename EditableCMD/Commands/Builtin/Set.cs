@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
@@ -38,8 +39,10 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
         #endregion
 
         private string regexCommandString = string.Empty;
+        private ConsoleState? state;
 
         /// <inheritdoc cref="ICommandInput.Init(ConsoleState)"/>
+        [MemberNotNull(nameof(state))]
         public void Init(ConsoleState state)
         {
             // Add all commands listed in CommandsHandled to the regex string for matching if this plugin handles the command.
@@ -47,6 +50,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
             {
                 regexCommandString = string.Concat("^(", string.Join('|', CommandsHandled), ")( .*)?$");
             }
+            this.state = state;
         }
 
         /// <summary>
@@ -55,17 +59,22 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
         /// <inheritdoc cref="ICommandInput.ProcessCommand(object?, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
         public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
+            // Call Init() again if state isn't set
+            if (state == null)
+            {
+                Init(e.State);
+            }
             // Return early if we're not interested in the event
             if (e.Handled || // Event has already been handled
                 !e.Key.KeyDown || // A key was not pressed
                 !(e.Key.ConsoleKey == ConsoleKey.Enter) || // The key pressed was not Enter
-                e.State.EditMode // Edit mode is enabled
+                state.EditMode // Edit mode is enabled
                 )
             {
                 return;
             }
             // If current input matches SET, we are handling the event
-            else if (!string.IsNullOrEmpty(regexCommandString) && Regex.Match(e.State.Input.Text.ToString().Trim(), regexCommandString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).Success)
+            else if (!string.IsNullOrEmpty(regexCommandString) && Regex.Match(state.Input.Text.ToString().Trim(), regexCommandString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).Success)
             {
                 e.Handled = true;
             }
@@ -76,7 +85,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
             }
 
             // TODO: Command prompt doesn't trim spaces
-            string[] commandWords = e.State.Input.Text.ToString().Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string[] commandWords = state.Input.Text.ToString().Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             // Command is "SET" - print environment variables
             if (commandWords.Length == 1)
@@ -89,7 +98,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                     Console.WriteLine(string.Concat(envVar.Key, "=", envVar.Value));
                 }
                 Console.WriteLine();
-                ConsoleOutput.WritePrompt(e.State, true);
+                ConsoleOutput.WritePrompt(state, true);
                 return;
             }
             // Command is "SET ..."
@@ -115,7 +124,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                     // Command is "SET something=..." - set/unset variable
                     if (settingVariable)
                     {
-                        string[] setParams = e.State.Input.Text.ToString().Split(' ', variableNamePosition + 1, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[variableNamePosition].Split('=', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        string[] setParams = state.Input.Text.ToString().Split(' ', variableNamePosition + 1, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[variableNamePosition].Split('=', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                         if (hasPromptedParam && setParams.Length == 2)
                         {
                             Console.Write(setParams.Length == 2 ? setParams[1] : string.Empty);
@@ -135,14 +144,14 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                             Environment.SetEnvironmentVariable(setParams[0], null);
                         }
                         Console.WriteLine();
-                        ConsoleOutput.WritePrompt(e.State, true);
+                        ConsoleOutput.WritePrompt(state, true);
                         return;
                     }
                     // (SET /P something) - does not have a value for the prompt
                     else if (hasPromptedParam && !commandWords[variableNamePosition].Contains('='))
                     {
                         Console.WriteLine("The syntax of the command is incorrect.\n");
-                        ConsoleOutput.WritePrompt(e.State, true);
+                        ConsoleOutput.WritePrompt(state, true);
                         return;
                     }
                     // Command is "SET something" - print name and value of variable
@@ -164,23 +173,23 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                             Console.WriteLine("Environment variable {0} not defined", commandWords[1]);
                         }
                         Console.WriteLine();
-                        ConsoleOutput.WritePrompt(e.State, true);
+                        ConsoleOutput.WritePrompt(state, true);
                         return;
                     }
                 }
                 else if (hasArithmeticParam)
                 {
-                    string[] setParams = e.State.Input.Text.ToString().Split(' ', variableNamePosition + 1, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[variableNamePosition].Split('=', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    string[] setParams = state.Input.Text.ToString().Split(' ', variableNamePosition + 1, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[variableNamePosition].Split('=', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     Console.WriteLine();
                     if (setParams.Length == 1)
                     {
                         Console.WriteLine("0");
-                        ConsoleOutput.WritePrompt(e.State, true);
+                        ConsoleOutput.WritePrompt(state, true);
                         return;
                     }
                     // Offload command prompt arithmetic parsing and calculation to command prompt
                     // This creates starts a CommandPrompt instance which sets up a thread using the parameters supplied
-                    CommandPrompt commandPrompt = new(e.State, null, false, false, true, false);
+                    CommandPrompt commandPrompt = new(state, null, false, false, true, false);
                     // The result of the aritmetic will be on the first line of the output - we can ignore the rest
                     bool firstLineReceived = false;
                     // Local method that will get called whenever CommandPrompt receives a line of output
@@ -200,7 +209,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                         commandPrompt.NewOutput -= onNewOutput;
                         commandPrompt.Completed -= onComplete;
                         Console.WriteLine(setParams[1]);
-                        ConsoleOutput.WritePrompt(e.State, true);
+                        ConsoleOutput.WritePrompt(state, true);
                         return;
                     }
                     // Add the above local methods as event handlers to the CommandPrompt instance

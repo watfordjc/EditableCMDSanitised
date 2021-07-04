@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
@@ -36,8 +37,10 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
         #endregion
 
         private string regexCommandString = string.Empty;
+        private ConsoleState? state;
 
         /// <inheritdoc cref="ICommandInput.Init(ConsoleState)"/>
+        [MemberNotNull(nameof(state))]
         public void Init(ConsoleState state)
         {
             // Add all commands listed in CommandsHandled to the regex string for matching if this plugin handles the command.
@@ -45,6 +48,7 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
             {
                 regexCommandString = string.Concat("^(", string.Join('|', CommandsHandled), ")?$");
             }
+            this.state = state;
         }
 
         /// <summary>
@@ -53,17 +57,22 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
         /// <inheritdoc cref="ICommandInput.ProcessCommand(object, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
         public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
+            // Call Init() again if state isn't set
+            if (state == null)
+            {
+                Init(e.State);
+            }
             // Return early if we're not interested in the event
             if (e.Handled || // Event has already been handled
                 !e.Key.KeyDown || // A key was not pressed
                 KeysHandled?.Contains(e.Key.ConsoleKey) == false || // The key pressed wasn't one we handle
-                e.State.EditMode // Edit mode is enabled
+                state.EditMode // Edit mode is enabled
                 )
             {
                 return;
             }
             // If current input matches a letter followed by a colon, we are handling the event
-            else if (!string.IsNullOrEmpty(regexCommandString) && Regex.Match(e.State.Input.Text.ToString().Trim(), regexCommandString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).Success)
+            else if (!string.IsNullOrEmpty(regexCommandString) && Regex.Match(state.Input.Text.ToString().Trim(), regexCommandString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).Success)
             {
                 e.Handled = true;
             }
@@ -73,7 +82,6 @@ namespace uk.JohnCook.dotnet.EditableCMD.Commands
                 return;
             }
 
-            ConsoleState state = e.State;
             Console.WriteLine();
             char newDriveLetter = state.Input.Text.ToString().ToLower()[0];
             if (state.CurrentDirectory.ToLower()[0] == newDriveLetter)

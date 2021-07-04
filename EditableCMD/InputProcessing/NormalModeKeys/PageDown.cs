@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Versioning;
 using uk.JohnCook.dotnet.EditableCMDLibrary.Commands;
@@ -34,12 +35,26 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
         public string[]? CommandsHandled => null;
         #endregion
 
+        private ConsoleState? state;
+
+        /// <inheritdoc cref="ICommandInput.Init(ConsoleState)"/>
+        [MemberNotNull(nameof(state))]
+        public void Init(ConsoleState state)
+        {
+            this.state = state;
+        }
+
         /// <summary>
         /// Event handler for PageDown key
         /// </summary>
         /// <inheritdoc cref="ICommandInput.ProcessCommand(object, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
         public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
+            // Call Init() again if state isn't set
+            if (state == null)
+            {
+                Init(e.State);
+            }
             // Return early if we're not interested in the event
             if (e.Handled || // Event has already been handled
                 !e.Key.KeyDown || // A key was not pressed
@@ -62,7 +77,6 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
             // PageDown (no modifier keys)
             if (!e.Key.HasModifier)
             {
-                ConsoleState state = e.State;
                 state.autoComplete.AutoCompleteEnd();
                 // PageDown - latest command in command history
                 if (state.PreviousCommands.Count == 0)

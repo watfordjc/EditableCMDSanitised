@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 using System.Text;
 using uk.JohnCook.dotnet.EditableCMDLibrary.Commands;
@@ -38,18 +39,32 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
         public string[]? CommandsHandled => null;
         #endregion
 
+        private ConsoleState? state;
+
+        /// <inheritdoc cref="ICommandInput.Init(ConsoleState)"/>
+        [MemberNotNull(nameof(state))]
+        public void Init(ConsoleState state)
+        {
+            this.state = state;
+        }
+
         /// <summary>
         /// Event handler for printable characters
         /// </summary>
         /// <inheritdoc cref="ICommandInput.ProcessCommand(object, NativeMethods.ConsoleKeyEventArgs)" path="param"/>
         public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
+            // Call Init() again if state isn't set
+            if (state == null)
+            {
+                Init(e.State);
+            }
             // Return early if we're not interested in the event
             if (e.Handled || // Event has already been handled
                 !e.Key.KeyDown || // A key was not pressed
                 (e.Key.CtrlModifier && !e.Key.AltGrModifier) || // Ctrl+PrintableCharacter
                 (e.Key.AltModifier && !e.Key.AltGrModifier) || // Alt+PrintableCharacter
-                e.State.EditMode // Edit mode is enabled
+                state.EditMode // Edit mode is enabled
                 )
             {
                 return;
@@ -64,8 +79,6 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing.NormalModeKeys
             {
                 return;
             }
-
-            ConsoleState state = e.State;
 
             // Insert printable character at current cursor position, replace next character if in overwrite mode
             NativeMethods.COORD currentPosition = ConsoleCursorUtils.GetCurrentCursorPosition();

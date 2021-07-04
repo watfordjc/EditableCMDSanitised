@@ -60,13 +60,18 @@ namespace uk.JohnCook.dotnet.EditableCMD.InputProcessing
         [SupportedOSPlatform("windows")]
         public void ProcessCommand(object? sender, NativeMethods.ConsoleKeyEventArgs e)
         {
-            if (!e.State.EditMode)
+            // Call Init() again if state isn't set
+            if (state == null)
+            {
+                Init(e.State);
+            }
+            // Return early if edit mode is not enabled.
+            if (!state.EditMode)
             {
                 return;
             }
 
             NativeMethods.KEY_EVENT_RECORD record = e.KeyEventRecord;
-            ConsoleState state = Program.GetConsoleState();
             NativeMethods.COORD cursorPosition = ConsoleCursorUtils.GetCurrentCursorPosition();
 
             // If a printable character, shift the rest of the line to the right by 1 character and insert the character.
